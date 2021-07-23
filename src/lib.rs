@@ -86,11 +86,11 @@ impl<T: Heap<E>, E> HeapType<T, E> {
     /// # Examples
     ///
     /// ```
-    /// use go_heap_rs::HeapType;
+    /// use go_heap_rs::{HeapType, MinHeap};
     ///
     /// let my_vec = MinHeap(vec![4, 3, 2, 1]); // see min heap implementation in Heap trait
     /// let mut heap = HeapType::new(my_vec);
-    /// assert_eq!(heap.peak(), Some(1));
+    /// assert_eq!(heap.peak(), Some(&1));
     /// ```
     pub fn new(init: T) -> HeapType<T, E> where T: Heap<E> {
         let mut data = HeapType {
@@ -142,7 +142,7 @@ impl<T: Heap<E>, E> HeapType<T, E> {
     /// # Examples
     ///
     /// ```
-    /// use go_heap_rs::HeapType;
+    /// use go_heap_rs::{HeapType, MinHeap};
     ///
     /// let my_vec = MinHeap(vec![1, 4, 3]);
     /// let mut heap = HeapType::new(my_vec); // [1, 4, 3]
@@ -174,7 +174,7 @@ impl<T: Heap<E>, E> HeapType<T, E> {
     /// # Examples
     ///
     /// ```
-    /// use go_heap_rs::HeapType;
+    /// use go_heap_rs::{HeapType, MinHeap};
     ///
     /// let my_vec = MinHeap(vec![10, 4, 3]);
     /// let mut heap = HeapType::new(my_vec); // [3, 4, 10]
@@ -229,37 +229,38 @@ impl<T: Heap<E>, E> HeapType<T, E> {
     }
 }
 
+/// A very simple min heap implementation
+pub struct MinHeap<T: Ord>(pub Vec<T>);
+
+impl<T: Ord> Heap<T> for MinHeap<T> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn less(&self, i: usize, j: usize) -> bool {
+        self.0[i] < self.0[j]
+    }
+
+    fn swap(&mut self, i: usize, j: usize) {
+        self.0.swap(i, j);
+    }
+
+    fn push(&mut self, x: T) {
+        self.0.push(x);
+    }
+
+    fn pop(&mut self) -> T {
+        self.0.pop().expect("pop on an empty vec!")
+    }
+
+    fn peak(&self) -> Option<&T> {
+        self.0.get(0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{Heap, HeapType};
-
-    struct MinHeap(Vec<i32>);
-
-    impl Heap<i32> for MinHeap {
-        fn len(&self) -> usize {
-            self.0.len()
-        }
-
-        fn less(&self, i: usize, j: usize) -> bool {
-            self.0[i] < self.0[j]
-        }
-
-        fn swap(&mut self, i: usize, j: usize) {
-            self.0.swap(i, j);
-        }
-
-        fn push(&mut self, x: i32) {
-            self.0.push(x);
-        }
-
-        fn pop(&mut self) -> i32 {
-            self.0.pop().expect("pop on an empty vec!")
-        }
-
-        fn peak(&self) -> Option<&i32> {
-            self.0.get(0)
-        }
-    }
+    use crate::{Heap, HeapType, MinHeap};
 
     #[test]
     fn simple_vec() {

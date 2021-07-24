@@ -1,4 +1,7 @@
 # go-heap-rs
+[![Test](https://github.com/HirbodBehnam/go-heap-rs/actions/workflows/test.yml/badge.svg)](https://github.com/HirbodBehnam/go-heap-rs/actions/workflows/test.yml)
+[![Docs](https://docs.rs/go-heap-rs/badge.svg)](https://docs.rs/go-heap-rs/)
+
 Golang's heap written in Rust
 
 ## Advantages

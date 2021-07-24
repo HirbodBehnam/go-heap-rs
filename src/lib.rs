@@ -13,7 +13,6 @@
 //! * Not really easy to work with
 //! * Lack of some methods like `from`
 
-
 use std::marker::PhantomData;
 
 /// All types which you want to create heap from them must implement this trait

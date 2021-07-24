@@ -6,7 +6,6 @@
 //! # Advantages
 //! * More control over swap method
 //! * Added `fix` and `remove` methods
-//! * Completely re-written Go's heap in Rust
 //! * Full access to underlying data
 //!
 //! # Disadvantages

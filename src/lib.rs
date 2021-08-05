@@ -97,8 +97,10 @@ impl<T: Heap<E>, E> HeapType<T, E> {
         };
         // Init
         let n = data.data.len();
-        for i in (0..=n / 2 - 1).rev() {
-            data.down(i, n);
+        if n != 0 {
+            for i in (0..=n / 2 - 1).rev() {
+                data.down(i, n);
+            }
         }
         data
     }
@@ -194,6 +196,11 @@ impl<T: Heap<E>, E> HeapType<T, E> {
         self.data.peak()
     }
 
+    /// len will simply call `self.data.len()`
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
     fn up(&mut self, mut j: usize) {
         loop {
             let i = (((j as isize) - 1) / 2) as usize; // parent
@@ -259,6 +266,8 @@ impl<T: Ord> Heap<T> for MinHeap<T> {
 #[cfg(test)]
 mod tests {
     use crate::{Heap, HeapType, MinHeap};
+    use std::collections::HashSet;
+    use rand::{thread_rng, Rng};
 
     #[test]
     fn simple_vec() {
@@ -296,5 +305,170 @@ mod tests {
         assert_eq!(heap.pop(), Some(3));
         assert_eq!(heap.pop(), Some(10));
         assert_eq!(heap.pop(), None);
+    }
+
+    #[test]
+    fn empty_test() {
+        let mut heap = HeapType::new(MinHeap(vec![]));
+        heap.push(2);
+        heap.push(1);
+        assert_eq!(heap.pop(), Some(1));
+        assert_eq!(heap.pop(), Some(2));
+        assert_eq!(heap.pop(), None);
+    }
+
+    //noinspection DuplicatedCode
+    fn verify(h: &MinHeap<i32>, i: usize) {
+        let n = h.len();
+        let j1 = 2 * i + 1;
+        let j2 = 2 * i + 2;
+        if j1 < n {
+            assert!(!h.less(j1, i), "heap invariant invalidated [{}] = {} > [{}] = {}", i, h.0[i], j1, h.0[j1]);
+            verify(h, j1);
+        }
+        if j2 < n {
+            assert!(!h.less(j2, i), "heap invariant invalidated [{}] = {} > [{}] = {}", i, h.0[i], j1, h.0[j2]);
+            verify(h, j2);
+        }
+    }
+
+    #[test]
+    fn go_init0() {
+        let h = vec![0; 20];
+        let mut h = HeapType::new(MinHeap(h));
+        verify(&h.data, 0);
+
+        let mut i = 1;
+        while h.len() > 0 {
+            let x = h.pop().unwrap();
+            verify(&h.data, 0);
+            assert_eq!(x, 0, "{}.th pop got {}; want {}", i, x, 0);
+            i += 1;
+        }
+    }
+
+    #[test]
+    fn go_init1() {
+        let mut h = vec![];
+        for i in 1..=20 {
+            h.push(i);
+        }
+        let mut h = HeapType::new(MinHeap(h));
+        verify(&h.data, 0);
+
+        let mut i = 1;
+        while h.len() > 0 {
+            let x = h.pop().unwrap();
+            verify(&h.data, 0);
+            assert_eq!(x, i, "{}.th pop got {}; want {}", i, x, i);
+            i += 1;
+        }
+    }
+
+    #[test]
+    fn go_test() {
+        let mut h = MinHeap(Vec::new());
+        verify(&h, 0);
+        for i in (11..=20).rev() {
+            h.push(i);
+        }
+        let mut h = HeapType::new(h);
+        verify(&h.data, 0);
+        for i in (1..=10).rev() {
+            h.push(i);
+            verify(&h.data, 0);
+        }
+
+        let mut i = 1;
+        while h.len() > 0 {
+            let x = h.pop().unwrap();
+            if i < 20 {
+                h.push(20 + i);
+            }
+            verify(&h.data, 0);
+            assert_eq!(x, i, "{}.th pop got {}; want {}", i, x, i);
+            i += 1;
+        }
+    }
+
+    #[test]
+    fn go_test_remove0() {
+        let mut h = HeapType::new(MinHeap(vec![]));
+        for i in 0..10 {
+            h.push(i);
+        }
+        verify(&h.data, 0);
+
+        while h.len() > 0 {
+            let i = h.len() - 1;
+            let x = h.remove(i);
+            assert_eq!(x, i as i32, "Remove({}) got {}; want {}", i, x, i);
+            verify(&h.data, 0);
+        }
+    }
+
+    #[test]
+    fn go_test_remove1() {
+        let mut h = HeapType::new(MinHeap(vec![]));
+        for i in 0..10 {
+            h.push(i);
+        }
+        verify(&h.data, 0);
+
+        let mut i = 0;
+        while h.len() > 0 {
+            let x = h.remove(0);
+            assert_eq!(x, i as i32, "Remove(0) got {}; want {}", x, i);
+            verify(&h.data, 0);
+            i += 1;
+        }
+    }
+
+    #[test]
+    fn go_test_remove2() {
+        const N: i32 = 10;
+        let mut h = HeapType::new(MinHeap(vec![]));
+        for i in 0..N {
+            h.push(i);
+        }
+        verify(&h.data, 0);
+
+        let mut m = HashSet::new();
+        while h.len() > 0 {
+            m.insert(h.remove((h.len() - 1) / 2));
+            verify(&h.data, 0);
+        }
+        assert_eq!(m.len(), N as usize, "len(m) = {}; want {}", m.len(), N);
+        for i in 0..N {
+            assert!(m.contains(&i), "m[{}] doesn't exist", i);
+        }
+    }
+
+    #[test]
+    fn go_test_fix() {
+        let mut h = HeapType::new(MinHeap(vec![]));
+        let mut i = 200;
+        while i > 0 {
+            h.push(i);
+            i -= 10;
+        }
+        verify(&h.data, 0);
+
+        assert_eq!(h.peak(), Some(&10), "Expected head to be 10, was {:?}", h.peak());
+        h.data.0[0] = 210;
+        h.fix(0);
+        verify(&h.data, 0);
+
+        let mut rng = thread_rng();
+        for i in 0..100 {
+            let elem = rng.gen_range(0..h.len());
+            if i % 2 == 0 {
+                h.data.0[elem] *= 2;
+            } else {
+                h.data.0[elem] /= 2;
+            }
+            h.fix(elem);
+            verify(&h.data, 0);
+        }
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "go-heap-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 license = "MIT"
 keywords = ["data-structures", "heap"]
@@ -10,3 +10,6 @@ repository = "https://github.com/HirbodBehnam/go-heap-rs"
 categories = ["data-structures"]
 
 [dependencies]
+
+[dev-dependencies]
+rand = "0.8.0"
